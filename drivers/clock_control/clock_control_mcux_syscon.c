@@ -348,6 +348,12 @@ static int mcux_lpc_syscon_clock_control_on(const struct device *dev,
 #if DT_NODE_HAS_STATUS_OKAY(DT_NODELABEL(tsi0))
 	if ((uint32_t)sub_system == MCUX_TSI_CLK) {
 #if defined(CONFIG_SOC_FAMILY_MCXA)
+		/* TSI0's clock mux resets to "NONE" on MCXA; without an explicit
+		 * attach, TSI_SelfCapCalibrate() hangs forever waiting for a
+		 * scan-complete flag that never comes.
+		 */
+		CLOCK_AttachClk(kFRO_HF_DIV_to_TSI0);
+		CLOCK_SetClockDiv(kCLOCK_DivTSI0, 10);
 		CLOCK_EnableClock(kCLOCK_GateTSI0);
 #else
 		CLOCK_EnableClock(kCLOCK_Tsi);
@@ -502,6 +508,21 @@ static int mcux_lpc_syscon_clock_control_on(const struct device *dev,
 static int mcux_lpc_syscon_clock_control_off(const struct device *dev,
 					     clock_control_subsys_t sub_system)
 {
+#if defined(CONFIG_COUNTER_NXP_MRT)
+	if ((uint32_t)sub_system == MCUX_MRT_CLK) {
+#if defined(CONFIG_SOC_FAMILY_LPC) || defined(CONFIG_SOC_SERIES_RW6XX) ||                          \
+	defined(CONFIG_SOC_FAMILY_MCXN) || defined(CONFIG_SOC_SERIES_MCXW2XX)
+		CLOCK_DisableClock(kCLOCK_Mrt);
+#elif defined(CONFIG_SOC_FAMILY_NXP_IMXRT)
+		CLOCK_DisableClock(kCLOCK_Mrt0);
+#endif
+	}
+#if defined(CONFIG_SOC_SERIES_RW6XX)
+	if ((uint32_t)sub_system == MCUX_FREEMRT_CLK) {
+		CLOCK_DisableClock(kCLOCK_FreeMrt);
+	}
+#endif
+#endif /* defined(CONFIG_COUNTER_NXP_MRT) */
 #if defined(CONFIG_EQDC_MCUX)
 	if ((uint32_t)sub_system == MCUX_EQDC_CLK ||
 	    (uint32_t)sub_system == MCUX_EQDC0_CLK) {
@@ -513,6 +534,47 @@ static int mcux_lpc_syscon_clock_control_off(const struct device *dev,
 	}
 #endif /* FSL_FEATURE_SOC_EQDC_COUNT > 1 */
 #endif
+
+#if DT_NODE_HAS_STATUS(DT_NODELABEL(opamp0), okay)
+	if ((uint32_t)sub_system == MCUX_OPAMP0_CLK) {
+#if defined(CONFIG_SOC_FAMILY_MCXA)
+		CLOCK_DisableClock(kCLOCK_GateOPAMP0);
+#else
+		CLOCK_DisableClock(kCLOCK_Opamp0);
+#endif
+	}
+#endif
+
+#if DT_NODE_HAS_STATUS(DT_NODELABEL(opamp1), okay)
+	if ((uint32_t)sub_system == MCUX_OPAMP1_CLK) {
+#if defined(CONFIG_SOC_FAMILY_MCXA)
+		CLOCK_DisableClock(kCLOCK_GateOPAMP1);
+#else
+		CLOCK_DisableClock(kCLOCK_Opamp1);
+#endif
+	}
+#endif
+
+#if DT_NODE_HAS_STATUS(DT_NODELABEL(opamp2), okay)
+	if ((uint32_t)sub_system == MCUX_OPAMP2_CLK) {
+#if defined(CONFIG_SOC_FAMILY_MCXA)
+		CLOCK_DisableClock(kCLOCK_GateOPAMP2);
+#else
+		CLOCK_DisableClock(kCLOCK_Opamp2);
+#endif
+	}
+#endif
+
+#if DT_NODE_HAS_STATUS(DT_NODELABEL(opamp3), okay)
+	if ((uint32_t)sub_system == MCUX_OPAMP3_CLK) {
+#if defined(CONFIG_SOC_FAMILY_MCXA)
+		CLOCK_DisableClock(kCLOCK_GateOPAMP3);
+#else
+		CLOCK_DisableClock(kCLOCK_Opamp3);
+#endif
+	}
+#endif
+
 	return 0;
 }
 
@@ -1088,6 +1150,8 @@ static int mcux_lpc_syscon_clock_control_get_subsys_rate(const struct device *de
 		*rate = CLOCK_GetWwdt0ClkFreq();
 #elif defined(CONFIG_SOC_FAMILY_MCXA) || defined(CONFIG_SOC_FAMILY_MCXL)
 		*rate = CLOCK_GetWwdtClkFreq();
+#elif defined(CONFIG_SOC_SERIES_LPC54XXX)
+		*rate = CLOCK_GetWdtOscFreq();
 #else
 		*rate = CLOCK_GetWdtClkFreq();
 #endif

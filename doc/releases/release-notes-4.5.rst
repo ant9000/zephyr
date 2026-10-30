@@ -26,8 +26,8 @@
 
 .. _zephyr_4.5:
 
-Zephyr 4.5.0 (Working Draft)
-############################
+Zephyr 4.5.0
+############
 
 We are pleased to announce the release of Zephyr version 4.5.0.
 
@@ -876,6 +876,7 @@ New APIs and options
   * :c:macro:`K_MSGQ_DEFINE_TYPE`
   * :c:macro:`K_MSGQ_DEFINE_STATIC_TYPE`
   * :c:func:`k_sleep_ticks`
+  * :c:func:`k_thread_is_user_thread`
   * Namespaced equivalents of the interrupt control APIs, preferred for new
     code; the unprefixed names remain fully supported:
     :c:func:`k_irq_lock`, :c:func:`k_irq_unlock`, :c:func:`k_irq_enable`,
@@ -2610,7 +2611,9 @@ Libraries / Subsystems
   * Added a native LoRaWAN backend
     (:kconfig:option:`CONFIG_LORA_MODULE_BACKEND_NATIVE`) that implements
     LoRaWAN 1.0.x Class A directly on top of the LoRa radio driver, without
-    the Semtech LoRaMac-node dependency.  Currently supports the EU868 region.
+    the Semtech LoRaMac-node dependency.  Currently supports the EU868 and
+    KR920 regions, the latter including the listen-before-talk that band
+    uses in place of a duty cycle.
   * :c:member:`lora_modem_config.sync_word`
 
 * Networking
